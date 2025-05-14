@@ -1,5 +1,5 @@
 const settings = window.wc.wcSettings.getSetting( 'vana_data', {} );
-const label = window.wp.htmlEntities.decodeEntities( settings.title ) || window.wp.i18n.__( 'Vana', 'vana' );
+const label = window.wp.htmlEntities.decodeEntities( settings.title ) || window.wp.i18n.__( 'VanaPay', 'vana_pay' );
 const Content = () => {
     let desc =  window.wp.htmlEntities.decodeEntities( settings.description || '' );
     return desc;
@@ -9,7 +9,7 @@ const Icon = () => {
     return icon;
 };
 const Block_Gateway = {
-    name: 'vana',
+    name: 'vana_pay',
     label: label,
     content: Object( window.wp.element.createElement )( Content, null ),
     edit: Object( window.wp.element.createElement )( Content, null ),

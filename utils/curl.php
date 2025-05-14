@@ -33,7 +33,7 @@ class VanaCurl{
     * @param string   $body Objeto para colocar en el cuerpo del Request.
     * @author Luis E. Mendoza <lmendoza@codingtipi.com>
     * @return Array Arreglo que contiene el código HTTP de la respuesta y el cuerpo de la respuesta.
-    * @link https://codingtipi.com/project/vana
+    * @link https://codingtipi.com/project/vanapay
     * @since 1.0.0
     */
     function execute_post($url, $body){
@@ -59,7 +59,7 @@ class VanaCurl{
     * Cierra la conexión de CURL
     * 
     * @author Luis E. Mendoza <lmendoza@codingtipi.com>
-    * @link https://codingtipi.com/project/recurrente
+    * @link https://codingtipi.com/project/vanapay
     * @since 1.2.0
     */
     function terminate(){

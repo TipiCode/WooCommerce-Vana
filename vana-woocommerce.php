@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 * Función encargada de inicializar la pasarela de pagos de VanaPay
 * 
 * @author Luis E. Mendoza <lmendoza@codingtipi.com>
-* @link https://codingtipi.com/project/vana
+* @link https://codingtipi.com/project/vanapay
 * @since 1.0.0
 */
 function vana_init() {
