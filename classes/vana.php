@@ -190,7 +190,7 @@ class VanaPay extends WC_Payment_Gateway {
       $customer_order->add_order_note( 'VanaPay: '.'Se inicializó el proceso de pago.' ); //Actualizar los comentarios 
       $customer_order->update_meta_data( 'vana_checkout_id', $single_checkout->id ); //Agregar el Id del checkout en la orden.
       $customer_order->update_meta_data( 'vana_checkout_url', $single_checkout->url ); //Agregar el URL del checkout en la orden.
-      $customer_order->update_meta_data( 'vana_client_token', $single_checkout->metadata->clientToken ); //Agregar el Token del cliente
+      $customer_order->update_meta_data( 'vana_client_token', $single_checkout->client_token ); //Agregar el Token del cliente
 
       $customer_order->save();
       return array(

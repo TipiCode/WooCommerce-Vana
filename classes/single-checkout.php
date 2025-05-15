@@ -50,7 +50,7 @@ class Single_Checkout {
             if($this->code == 201){
                 $this->id = $response['body']->id;
                 $this->url = $response['body']->url;
-                $this->client_token = $response['body']->metadata->client_token;
+                $this->client_token = $response['body']->metadata->clientToken;
             } else {
                 return $response['body']->message;
             }
@@ -75,7 +75,7 @@ class Single_Checkout {
                 "amount" => $this->customer_order->get_total(),
                 "currency"  => $this->customer_order->get_currency(),
                 "redirection" => Array(
-                    "successUrl" => get_site_url().'?wc-api=vana&status=1&order='. $this->customer_order->get_order_number()
+                    "successUrl" => get_site_url().'?wc-api=vana_pay&status=1&order='. $this->customer_order->get_order_number()
                 ),
                 "order" => $this->get_order_items_custom_data(),
                 "billing" => Array(

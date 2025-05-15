@@ -51,7 +51,8 @@ class VanaResponse
     * @since 1.0.0
     */  
     private function payment_failed($data){
-        //PROCESAR FAIL
+        $checkout_id = $data->id;
+        $this->process_order($checkout_id, 'wc-cancelled', 'VanaPay: El pago no fue autorizado');
     }
 
     /**
@@ -68,7 +69,6 @@ class VanaResponse
         $success_message = 'Se completo correctamente el pago con tarjeta.';
 
         $order_status = isset($this->settings['order_status']) ? $this->settings['order_status'] : 'wc-completed';
-
         $this->process_order($checkout_id, $order_status, 'VanaPay: '.$success_message);
     }
 
