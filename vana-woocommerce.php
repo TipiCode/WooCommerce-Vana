@@ -13,6 +13,8 @@
 *
 * @package WoocommerceVana
 */
+define('PLUGIN_VERSION', '1.0.0');
+define('APP_ID', '323e615b-323e-48bf-bea7-f20b79748a4f');
 
 if ( ! defined( 'ABSPATH' ) ) { 
   exit; // No permitir acceder el plugin directamente
@@ -154,7 +156,7 @@ add_action( 'woocommerce_blocks_loaded', 'vana_register_order_approval_payment_m
 */
 function filter_woocommerce_gateway_icon( $icon, $this_id ) {	
 	if($this_id == "vana_pay") {
-		$icon = "<img style='max-width: 100px;' src='".plugins_url('assets/providers.png', __FILE__)."' alt='Vana Logo' />";
+		$icon = "<img style='max-width: 100px;' src='".plugins_url('assets/vanapay.svg', __FILE__)."' alt='Vana Logo' />";
 	}
 	return $icon;
 
@@ -173,3 +175,80 @@ function woo_change_order_received_text( $str, $order ) {
   return sprintf( "Gracias, %s!", esc_html( $customer_order->get_billing_first_name() ) );
 }
 add_filter('woocommerce_thankyou_order_received_text', 'woo_change_order_received_text', 10, 2 );
+
+/**
+* Agrega el widget de Vana
+* 
+* @author Luis E. Mendoza <lmendoza@codingtipi.com>
+* @link https://codingtipi.com/project/recurrente
+* @since 1.2.0
+*/
+function vana_add_widget() {
+  global $product;
+  if (!is_product() || !is_a($product, 'WC_Product')) {
+    return;
+  }
+
+  $sku = $product->get_sku();
+  if (empty($sku)) {
+      $sku = 'PRO-1234'; // Replace with your actual fallback SKU
+  }
+  if ($product->is_type('variable')) {
+      $price = $product->get_variation_price('min', true); // true = including tax
+  } else {
+      $price = $product->get_price(); // Returns the raw price
+  }
+  // Optionally format it:
+  $formatted_price = wc_price($price);
+
+  $gateways = WC()->payment_gateways->get_available_payment_gateways();
+
+  if (isset($gateways['vana_pay'])) {
+    $gateway = $gateways['vana_pay'];
+    $merchant_id = $gateway->get_option('merchant_id'); 
+    
+    ?>
+        <div id="vana-financing-info">
+          <script type="text/javascript">
+            window.VanaPayRender = function({ merchantId: n, productPrice: e, sku: t, devMode: a, containerSelector: c }) {
+              const o = `https://api.${a ? "dev." : ""}pay.vana.gt/v1/product/snippet`;
+                    
+              document.addEventListener("DOMContentLoaded", function() {
+                  const container = c ? document.querySelector(c) : null;
+                  if (n && e && t) {
+                      fetch(`${o}/${n}/${e}`)
+                          .then(res => res.json())
+                          .then(res => {
+                              if (res && res.data.html) {
+                                  if (container) {
+                                      container.innerHTML = res.data.html;
+                                  } else {
+                                      // Fallback: insert after the current script
+                                      const script = document.currentScript || [...document.getElementsByTagName("script")].pop();
+                                      script && script.insertAdjacentHTML("afterend", res.data.html);
+                                  }
+                              }
+                          })
+                          .catch(() => console.error("VanaPay: Error loading financing info."));
+                  } else {
+                      console.warn("VanaPay: Missing required parameters.");
+                  }
+              });
+          };
+
+          VanaPayRender({
+              merchantId: "<?php echo $merchant_id ?>",
+              productPrice: <?php echo esc_js($price); ?>,
+              sku: "<?php echo esc_js($sku); ?>",
+              devMode: true,
+              containerSelector: "#vana-financing-info"
+          });
+
+          </script>
+        </div>
+        
+        <?php
+  } 
+
+}
+add_action('woocommerce_single_product_summary', 'vana_add_widget', 11);

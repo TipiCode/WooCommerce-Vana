@@ -52,9 +52,11 @@ class Single_Checkout {
                 $this->url = $response['body']->url;
                 $this->client_token = $response['body']->metadata->clientToken;
             } else {
+                Support::log_error('55', 'single-checkout.php', 'Ocurrio un creando la instancia del checkout.', print_r($response['body'], true));
                 return $response['body']->message;
             }
         } catch (Exception $e) {
+            Support::log_error('59', 'single-checkout.php', 'Ocurrio un error creando la instancia del checkout.', $e->getMessage());
             return new WP_Error('error', $e->getMessage());
         }
     }
