@@ -68,9 +68,42 @@ class VanaPay extends WC_Payment_Gateway {
     public function init_actions(){
       add_action( 'admin_notices', array( $this,  'validate_activation' ) );
       add_action('woocommerce_api_vana_pay', array($this, 'redirect_callback'));
-      if ( is_admin() ) {
-        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-      }  
+      if ( is_admin() && !has_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' )) ) {
+        add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ));
+      }
+    }
+
+    /**
+    * Función encargada del manejo del token al momento de guardar los settings
+    * 
+    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
+    * @link https://codingtipi.com/project/vanapay
+    * @since 1.0.0
+    */ 
+    function process_admin_options() {
+      parent::process_admin_options();
+
+      $client_id = $this->get_option('client_id');
+      $client_secret = $this->get_option('client_secret');
+
+      try {
+          $url = 'https://aurora.codingtipi.com/pay/v2/vana/setup';
+          $body = array(
+              'clientId' => $client_id,
+              'clientSecret' => $client_secret
+          );
+          $curl = new VanaCurl();
+          $response = $curl->execute_post($url, $body);
+          $curl->terminate();
+          if($response['code'] != 200){
+              Support::log_error('98', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', print_r($response['body'], true));
+          }else{
+              update_option('vana_api_token', $response['body']->token);
+              return $response['body']->token;
+          }
+      } catch (Exception $e) {
+          Support::log_error('104', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', $e->getMessage());
+      }
     }
 
     /**
@@ -144,51 +177,48 @@ class VanaPay extends WC_Payment_Gateway {
     * @since 1.0.0
     */
     public function process_payment($order_id){
-      try {
-        $order = wc_get_order($order_id);
-        // Verificar todas las opciones de configuración disponibles
-        $all_settings = get_option('woocommerce_vana_settings');
-        $vana_settings = get_option('vana_settings');
+      global $woocommerce;
+      $customer_order = new WC_Order( $order_id );
+      $single_checkout = new Single_Checkout($customer_order);
+      $checkout_transaction = $single_checkout->create(); 
 
-        $token = get_option('vana_api_token');
+      if ( is_wp_error( $checkout_transaction ) ) //Valida por error en la llamada del API
+        $this->fail($checkout_transaction);
+      if ( $single_checkout->code != 201 ) //Valida el return del status code 
+        $this->fail($checkout_transaction);
 
-        if (empty($token)) {
-          // Intentar obtener las credenciales de diferentes fuentes
-          $settings = get_option('vana_settings');
-          if (empty($settings)) {
-            $settings = get_option('woocommerce_vana_settings');
-          }
+      $customer_order->add_order_note( 'VanaPay: '.'Se inicializó el proceso de pago.' ); //Actualizar los comentarios 
+      $customer_order->update_meta_data( 'vana_checkout_id', $single_checkout->id ); //Agregar el Id del checkout en la orden.
+      $customer_order->update_meta_data( 'vana_checkout_url', $single_checkout->url ); //Agregar el URL del checkout en la orden.
+      $customer_order->update_meta_data( 'vana_client_token', $single_checkout->metadata->clientToken ); //Agregar el Token del cliente
 
-          if (!empty($settings['client_id']) && !empty($settings['client_secret'])) {
-            $result = VanaSettings::obtain_token($settings['client_id'], $settings['client_secret']);
-            if (is_wp_error($result)) {
-              return $result;
-            }
-            $token = get_option('vana_api_token');
-          } else {
-            return new WP_Error('no_credentials', 'No se encontraron las credenciales de API. Por favor, verifica la configuración del plugin.');
-          }
-        }
+      $customer_order->save();
+      return array(
+        'result'   => 'success',
+        'redirect' => $single_checkout->url,
+      );
+    }
 
-        $single_checkout = new Single_Checkout($order);
-        $result = $single_checkout->create();
+    /**
+    * Función encargada de validar los campos de la configuración.
+    * 
+    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
+    * @link https://codingtipi.com/project/vanapay
+    * @since 1.2.0
+    */
+    public function validate_fields() {
+      return true;
+    }
 
-        if (is_wp_error($result)) {
-          return $result;
-        }
-
-        if ($result === true) {
-          return array(
-            'result' => 'success',
-            'redirect' => $single_checkout->url
-          );
-        } else {
-          return new WP_Error('checkout_error', $result);
-        }
-      } catch (Exception $e) {
-        Support::log_error('189', 'vana.php', 'Ocurrio un error creando el checkout simple.', $e->getMessage());
-        return new WP_Error('exception', $e->getMessage());
-      }
+    /**
+    * Función encargada de mostrar el mensaje de error al usuario.
+    * 
+    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
+    * @link https://codingtipi.com/project/recurrente
+    * @since 1.2.0
+    */
+    public function fail($message){
+      throw new Exception( __( $message, 'vana_pay' ) );
     }
 
     /**

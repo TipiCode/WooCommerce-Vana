@@ -9,7 +9,6 @@
 */ 
 class VanaPaySettings 
 {
-    private $curl;
     /**
     * Obtiene el arreglo de configuraciones
     * 
@@ -66,89 +65,4 @@ class VanaPaySettings
             ),
         );    
     }
-
-    /**
-    * Obtiene la instancia de Curl
-    * 
-    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
-    * @since 1.0.0
-    */ 
-    private function get_curl() {
-        if ($this->curl === null) {
-            $token = get_option('vana_api_token');
-            $this->curl = new VanaCurl($token);
-        }
-        return $this->curl;
-    }
-
-    /**
-    * Obtiene el token de autenticación
-    * 
-    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
-    * @since 1.0.0
-    */ 
-    public static function obtain_token($client_id, $client_secret, $merchant_id) {
-        if (empty($client_id) || empty($client_secret) || empty($merchant_id)) {
-            return new WP_Error('invalid_credentials', 'Las credenciales de VanaPay son inválidas');
-        }
-
-        try {
-            $url = 'https://aurora.codingtipi.com/pay/v2/vana/setup';
-            $body = array(
-                'clientId' => $client_id,
-                'clientSecret' => $client_secret
-            );
-            $curl = $this->get_curl();
-            $response = $curl->execute_post($url, $checkout);
-            if($response['code'] != 200){
-                Support::log_error('105', 'vana-settings.php', 'Ocurrio un error obteniendo el Token para uso del API.', print_r($response['body'], true));
-                return new WP_Error('invalid_token', 'El token es invalido');
-            }else{
-                return $response['body']->token;
-            }
-        } catch (Exception $e) {
-            Support::log_error('107', 'vana-settings.php', 'Ocurrio un error obteniendo el Token para uso del API.', $e->getMessage());
-        }
-    }
-
-    /**
-    * Inicializa los settings
-    * 
-    * @author Luis E. Mendoza <lmendoza@codingtipi.com>
-    * @since 1.0.0
-    */
-    public static function init_actions() {
-        add_action('update_option_woocommerce_vana_settings', function($old_value, $value, $option) {
-            
-            if (isset($value['client_id']) && isset($value['client_secret']) && isset($value['merchant_id'])) {
-                // Guardar las credenciales en ambas opciones para compatibilidad
-                update_option('vana_settings', array(
-                    'client_id' => $value['client_id'],
-                    'client_secret' => $value['client_secret'],
-                    'merchant_id' => $value['merchant_id']
-                ));
-                
-                VanaPaySettings::obtain_token($value['client_id'], $value['client_secret'], $value['merchant_id']);
-            }
-        }, 10, 3);
-        
-        // Verificar si las credenciales existen al cargar el plugin
-        add_action('plugins_loaded', function() {
-            $woocommerce_settings = get_option('woocommerce_vana_settings');
-            $vana_settings = get_option('vana_settings');
-
-            // Si no hay configuración en vana_settings pero sí en woocommerce_vana_settings
-            if (empty($vana_settings) && !empty($woocommerce_settings)) {
-                if (isset($woocommerce_settings['client_id']) && isset($woocommerce_settings['client_secret']) && isset($woocommerce_settings['merchant_id'])) {
-                    update_option('vana_settings', array(
-                        'client_id' => $woocommerce_settings['public_key'],
-                        'client_secret' => $woocommerce_settings['secret_key'],
-                        'merchant_id' => $woocommerce_settings['merchant_id']
-                    ));
-                }
-            }
-        });
-    }
 }
-
-VanaPaySettings::init_actions();

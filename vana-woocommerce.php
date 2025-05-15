@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 */
 function vana_init() {
     if (!class_exists('WC_Payment_Gateway')) {
-        return;
+      return;
     }
 
     // Definir la ruta base del plugin
@@ -39,10 +39,11 @@ function vana_init() {
     }
 
     require_once VANA_PLUGIN_DIR . '/classes/vana.php';
-    require_once VANA_PLUGIN_DIR . '/classes/single_checkout.php';
+    require_once VANA_PLUGIN_DIR . '/classes/single-checkout.php';
     require_once VANA_PLUGIN_DIR . '/includes/vana-response.php';
     require_once VANA_PLUGIN_DIR . '/includes/vana-settings.php';
     require_once VANA_PLUGIN_DIR . '/includes/vana-block-checkout.php';
+    require_once VANA_PLUGIN_DIR . '/includes/support.php';
 
     VanaPay::get_instance();
 

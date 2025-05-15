@@ -17,7 +17,7 @@ class VanaCurl{
     * @param string $token  Token de autenticación que provee Recurrente.
     * 
     */
-    function __construct($token) {
+    function __construct($token = null) {
         $this->ch = curl_init();
         $this->header  = Array(
             'X-TOKEN:' . $token,

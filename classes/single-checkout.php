@@ -10,9 +10,9 @@
 class Single_Checkout {
     private $gateway;
     private $customer_order;
-    private $curl;
     public $id;
     public $url;
+    public $client_token;
 
     /**
     * Constructor
@@ -23,18 +23,6 @@ class Single_Checkout {
     function __construct($customer_order) {
         $this->gateway = VanaPay::get_instance();
         $this->customer_order = $customer_order;
-        $this->curl = null;
-    }
-
-    /**
-    * Obtiene una instancia de Curl
-    */
-    private function get_curl() {
-        if ($this->curl === null) {
-            $token = get_option('vana_api_token');
-            $this->curl = new VanaCurl($token);
-        }
-        return $this->curl;
     }
 
     /**
@@ -48,16 +36,21 @@ class Single_Checkout {
     */
     public function create(){
         try {
+            $token = get_option('vana_api_token');
+
             $url = 'https://aurora.codingtipi.com/pay/v2/vana/checkouts/hosted/single';
-            $curl = $this->get_curl();
+            $curl = new VanaCurl(
+                $token
+            );// Inicializar Curl
             $checkout = $this->get_api_model();
             $response = $curl->execute_post($url, $checkout);
-            
+            $curl->terminate();
+
             $this->code = $response['code'];
             if($this->code == 201){
                 $this->id = $response['body']->id;
                 $this->url = $response['body']->url;
-                return true;
+                $this->client_token = $response['body']->metadata->client_token;
             } else {
                 return $response['body']->message;
             }
@@ -84,7 +77,7 @@ class Single_Checkout {
                 "redirection" => Array(
                     "successUrl" => get_site_url().'?wc-api=vana&status=1&order='. $this->customer_order->get_order_number()
                 ),
-                "options" => get_order_items_custom_data(),
+                "order" => $this->get_order_items_custom_data(),
                 "billing" => Array(
                     "name" => $this->customer_order->get_billing_first_name(),
                     "surname" => $this->customer_order->get_billing_last_name(),
@@ -110,10 +103,10 @@ class Single_Checkout {
             $product = $item->get_product();
         
             $product_object = (object) Array(
-                "id"       => $product->get_id(),
+                "reference"       => (string) $product->get_id(),
                 "name"     => $product->get_name(),
                 "price"    => $product->get_price(),
-                "quantity" => $item->get_quantity()
+                "qty" => $item->get_quantity()
             );
         
             $product_data_array[] = $product_object;
