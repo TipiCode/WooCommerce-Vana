@@ -96,13 +96,13 @@ class VanaPay extends WC_Payment_Gateway {
           $response = $curl->execute_post($url, $body);
           $curl->terminate();
           if($response['code'] != 200){
-              Support::log_error('98', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', print_r($response['body'], true));
+              VanaSupport::log_error('98', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', print_r($response['body'], true));
           }else{
               update_option('vana_api_token', $response['body']->token);
               return $response['body']->token;
           }
       } catch (Exception $e) {
-          Support::log_error('105', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', $e->getMessage());
+          VanaSupport::log_error('105', 'vana.php', 'Ocurrio un error obteniendo el Token para uso del API.', $e->getMessage());
       }
     }
 
@@ -168,7 +168,7 @@ class VanaPay extends WC_Payment_Gateway {
         $response = new VanaResponse($data->data->status);
         $response->execute($data->data);
       } catch (Exception $e) {
-        Support::log_error('171', 'vana.php', 'Ocurrio un error procesando el webhook.', $e->getMessage());
+        VanaSupport::log_error('171', 'vana.php', 'Ocurrio un error procesando el webhook.', $e->getMessage());
       }
     }
 

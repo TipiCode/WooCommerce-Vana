@@ -5,7 +5,7 @@
 * @copyright  2024 - tipi(code)
 * @since      1.0.0
 */ 
-class Support {
+class VanaSupport {
     /**
     * Envia el error al API de Aurora
     * 
@@ -18,8 +18,8 @@ class Support {
             "File" => $file,
             "FriendlyMsg" => $error,
             "exception" => $exception,
-            "url" => "oxexpeditions.com",
-            "version" => PLUGIN_VERSION,
+            "url" => get_site_url(),
+            "version" => VANA_PLUGIN_VERSION,
         ];
 
         $ch = curl_init();
@@ -31,7 +31,7 @@ class Support {
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'accept: application/json',
             'Content-Type: application/json',
-            'X-App-Id: ' . APP_ID
+            'X-App-Id: ' . VANA_APP_ID
         ));
         curl_exec($ch);
     }

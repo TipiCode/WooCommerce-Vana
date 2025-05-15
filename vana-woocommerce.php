@@ -13,8 +13,8 @@
 *
 * @package WoocommerceVana
 */
-define('PLUGIN_VERSION', '1.0.0');
-define('APP_ID', '323e615b-323e-48bf-bea7-f20b79748a4f');
+define('VANA_PLUGIN_VERSION', '1.0.0');
+define('VANA_APP_ID', '323e615b-323e-48bf-bea7-f20b79748a4f');
 
 if ( ! defined( 'ABSPATH' ) ) { 
   exit; // No permitir acceder el plugin directamente
