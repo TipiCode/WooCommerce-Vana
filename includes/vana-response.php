@@ -65,7 +65,7 @@ class VanaResponse
     * @since 1.2.0
     */ 
     private function payment_succeeded($data){
-        $checkout_id = $data->id;
+        $checkout_id = $data->payment_session_id;
         $success_message = 'Se completo correctamente el pago con tarjeta.';
 
         $order_status = isset($this->settings['order_status']) ? $this->settings['order_status'] : 'wc-completed';
