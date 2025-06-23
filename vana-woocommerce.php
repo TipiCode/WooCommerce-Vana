@@ -211,7 +211,7 @@ function vana_add_widget() {
         <div id="vana-financing-info">
           <script type="text/javascript">
             window.VanaPayRender = function({ merchantId: n, productPrice: e, sku: t, devMode: a, containerSelector: c }) {
-              const o = `https://api-merchant.pay.vana.gt/v1/product/snippet`;
+              const o = `https://api.pay.vana.gt/v1/product/snippet`;
                     
               document.addEventListener("DOMContentLoaded", function() {
                   const container = c ? document.querySelector(c) : null;
